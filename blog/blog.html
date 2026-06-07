@@ -1,0 +1,74 @@
+<!-- ============================================================= -->
+<!-- WordPress-ready. Paste into a "Custom HTML" block. Inline      -->
+<!-- styles keep it readable across themes. Upload the two PNGs in   -->
+<!-- this folder to your Media Library (filenames already match),    -->
+<!-- and edit the byline + About box at the bottom before publishing.-->
+<!-- ============================================================= -->
+<div class="ace-dba-post" style="max-width:820px;margin:0 auto;line-height:1.7;font-size:18px;color:#1f2430;font-family:Georgia,'Times New Roman',serif;">
+
+  <h1 style="font-size:2.1em;line-height:1.25;font-family:Helvetica,Arial,sans-serif;">AI DBAs That Argue Their Way to a Runbook: An Incident War-Room on Oracle 26ai</h1>
+
+  <p style="font-style:italic;color:#5a6172;">What if, the moment an incident hit, two AI DBAs investigated your database and debated the fix — one pushing to restore service fast, one guarding against risk — and handed you a runbook? Here's how I built exactly that on Oracle 26ai with the SQLcl MCP Server.</p>
+
+  <hr style="border:none;border-top:1px solid #e2e2e2;margin:24px 0;">
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">The idea in one sentence</h2>
+  <p>When a database incident lands, I don't ask one AI "what's wrong?" — I let <strong>three AI DBAs work the incident together</strong>: a <strong>Mitigator</strong> who wants service back <em>now</em>, a <strong>Guardian</strong> who challenges the risk and hunts the root cause, and an <strong>Incident Commander</strong> who weighs both and writes the runbook. All three read the same live diagnostics from Oracle 26ai.</p>
+  <p>Why make them argue? Because under pressure, the fast fix and the safe fix are often different things. A "just kill the blocking session" reflex can roll back a half-finished batch job. Forcing the two viewpoints into the open gets you a decision you can actually defend at the post-mortem.</p>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">Why 26ai makes this practical</h2>
+  <p>As an Oracle ACE, two features make this genuinely easy today:</p>
+  <ul>
+    <li><strong>The SQLcl MCP Server</strong> — lets AI agents run queries against the database over a standard protocol, using a saved connection, <em>without ever seeing your password</em>. Start it with one command: <code>sql -mcp</code>.</li>
+    <li><strong>AI Vector Search</strong> — lets the agents ask "have we seen this before?" against a knowledge base of past incidents, in plain SQL. That's retrieval-augmented troubleshooting, right inside the database.</li>
+  </ul>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">The most important design choice: the agents are read-only</h2>
+  <p>This is non-negotiable for me. The agents can <strong>only run <code>SELECT</code></strong> queries — the code rejects anything else. They never <code>KILL</code> a session, never <code>ALTER</code>, never run DML. When a fix requires a change, they <em>recommend</em> the exact command, tagged <strong>"needs approval"</strong>, for a human to run. The AI investigates and advises; a person stays in control of every change.</p>
+  <p>I also debate a <em>captured snapshot</em> of the incident (saved <code>v$session</code>/<code>v$sql</code>-style data), so running the demo never loads or destabilises a real database.</p>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">The incident</h2>
+  <p>Our test incident is a classic <strong>SEV1</strong>: the order API is timing out, active sessions have spiked to ~140, and 58 of them are stuck on <code>enq: TX - row lock contention</code>. The whole pile-up traces back to <strong>one idle session</strong> — a stalled nightly batch job (SID 123) holding a row lock from an <strong>uncommitted</strong> <code>UPDATE</code>.</p>
+  <p>That's the perfect argument starter: kill SID 123 and 58 sessions are freed instantly… but it's a batch job mid-transaction. What happens to its work?</p>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">"Have we seen this before?" — vector search over past incidents</h2>
+  <p>Before recommending anything risky, the Guardian searches a knowledge base of past incidents. The current symptoms get matched, by meaning, against what we've resolved before:</p>
+
+  <figure style="margin:24px 0;text-align:center;">
+    <img src="incident-search.png" alt="AI Vector Search results: the most similar past incident is 'Idle blocker holding row lock stalls order API' at distance 0.20, with its safe resolution shown" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;" />
+    <figcaption style="font-size:14px;color:#7a808c;font-style:italic;margin-top:8px;font-family:Helvetica,Arial,sans-serif;">The closest past incident is the same idle-blocker / row-lock pattern — along with how we safely resolved it last time.</figcaption>
+  </figure>
+
+  <p>The top hit (distance 0.20) is exactly our situation, and it carries the proven playbook: <em>identify the blocker, confirm with the batch owner, then kill — the small transaction rolled back in seconds.</em> That precedent is gold during a live incident.</p>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">The debate, and the runbook</h2>
+  <p>Each agent investigates with read-only SQL, then makes its case. The Mitigator wants SID 123 gone now; the Guardian insists on confirming the transaction's blast radius first and cites the precedent; the Mitigator refines into a safe-but-fast plan; and the Commander turns it all into an ordered runbook:</p>
+
+  <figure style="margin:24px 0;text-align:center;">
+    <img src="debate-screenshot.png" alt="The incident war-room: a SEV1 banner, the Incident Commander's runbook, and the Mitigator (restore fast), Guardian (safety), and refined-plan arguments" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;" />
+    <figcaption style="font-size:14px;color:#7a808c;font-style:italic;margin-top:8px;font-family:Helvetica,Arial,sans-serif;">Mitigator vs Guardian, and the Incident Commander's runbook — every step grounded in the live diagnostics.</figcaption>
+  </figure>
+
+  <p>The Commander's runbook marks each step <strong>[SAFE / READ-ONLY]</strong> or <strong>[CHANGE — needs approval]</strong>, gives the exact commands, and finishes with a rollback plan and what to monitor for recovery. In other words: a junior DBA could follow it, and a senior DBA would sign off on it.</p>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">A few tips from building it</h2>
+  <ul>
+    <li><strong>Keep the agents read-only.</strong> Enforce it in code, not just in the prompt. Recommending a <code>KILL</code> is fine; executing one autonomously is not.</li>
+    <li><strong>Real vector SQL.</strong> Oracle uses <code>VECTOR_DISTANCE(column, query, COSINE)</code> with <code>FETCH APPROX FIRST n ROWS ONLY</code>.</li>
+    <li><strong>The MCP server is SQLcl's</strong> — <code>sql -mcp</code> with a saved connection. The agents reach the DB through it and every query is audited like any other session.</li>
+    <li><strong>Debate a snapshot.</strong> Capturing the incident state into tables makes the whole thing reproducible and completely safe to demo.</li>
+  </ul>
+
+  <h2 style="font-family:Helvetica,Arial,sans-serif;color:#b1361e;">The takeaway</h2>
+  <p>An AI that confidently tells you to "kill the blocker" is easy to build and dangerous to trust. An AI <em>war-room</em> — fast vs. safe, grounded in live data and past experience, advising rather than acting — is something I'd actually want next to me at 2am. And on Oracle 26ai, with the SQLcl MCP Server and AI Vector Search, it's only a couple hundred lines of code.</p>
+
+  <hr style="border:none;border-top:1px solid #e2e2e2;margin:28px 0;">
+
+  <div style="background:#f7f6f3;border-radius:8px;padding:16px 20px;font-size:16px;font-family:Helvetica,Arial,sans-serif;">
+    <strong>About the author</strong><br>
+    <em>[Your Name]</em> is an <strong>Oracle ACE</strong> focused on the Oracle AI Database (26ai), AI Vector Search, and the SQLcl MCP Server. Connect on [LinkedIn / X] for more hands-on Oracle AI experiments.
+  </div>
+
+  <p style="font-size:14px;color:#7a808c;margin-top:16px;">⚠️ A learning demo — review any recommended command before running it against a real database.</p>
+
+</div>
