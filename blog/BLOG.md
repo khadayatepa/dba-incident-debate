@@ -60,6 +60,6 @@ An AI that confidently tells you to "kill the blocker" is easy to build and dang
 
 ---
 
-*About the author: **[Your Name]** is an **Oracle ACE** focused on the Oracle AI Database (26ai), AI Vector Search, and the SQLcl MCP Server.*
+*About the author: **Prashant Khadayate** is an **Oracle ACE** focused on the Oracle AI Database (26ai), AI Vector Search, and the SQLcl MCP Server. Connect on [LinkedIn](https://www.linkedin.com/in/prashant-khadayate-1a8b0b97/) for more hands-on Oracle AI experiments.*
 
 > ⚠️ A learning demo — review any recommended command before running it against a real database.
