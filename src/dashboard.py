@@ -24,8 +24,8 @@ import dashboard_data as dd
 from mcp_oracle import open_oracle_mcp
 
 PERSONA_STYLE = {
-    "MITIGATOR": ("🚑 Mitigator — restore service fast", "#fdecea", "#c62828"),
-    "GUARDIAN": ("🛡️ Guardian — safety & root cause", "#eef3fb", "#2b6cb0"),
+    "MITIGATOR": ("🚑 MITIGATOR · restore service fast", "#1c1416", "#f87171"),
+    "GUARDIAN": ("🛡 GUARDIAN · safety & root cause", "#0f1825", "#60a5fa"),
 }
 
 
