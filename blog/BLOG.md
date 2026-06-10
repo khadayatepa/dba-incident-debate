@@ -8,6 +8,7 @@
 
 - **Tech stack:** Oracle 26ai · SQLcl MCP Server · OpenAI · Streamlit
 - **Database:** Oracle AI Database 26ai — 23.26.2.2.0 (Autonomous Database)
+- **Prerequisites:** SQLcl 25.2+ (MCP), Python 3.10+, OpenAI API key, Streamlit
 - **Best for:** Read-only, AI-assisted DBA incident triage that produces a runbook — no write access to production needed.
 - **Level:** Intermediate
 
