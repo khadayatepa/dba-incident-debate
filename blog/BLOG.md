@@ -4,6 +4,14 @@
 
 ---
 
+**📋 At a glance**
+
+- **Tech stack:** Oracle 26ai · SQLcl MCP Server · OpenAI · Streamlit
+- **Database:** Oracle AI Database 26ai — 23.26.2.2.0 (Autonomous Database)
+- **Best for:** Read-only, AI-assisted DBA incident triage that produces a runbook — no write access to production needed.
+- **Level:** Intermediate
+
+
 ## The idea in one sentence
 
 When a database incident lands, I don't ask one AI "what's wrong?" — I let **three AI DBAs work the incident together**: a **Mitigator** who wants service back *now*, a **Guardian** who challenges the risk and hunts the root cause, and an **Incident Commander** who weighs both and writes the runbook. All three read the same live diagnostics from Oracle 26ai.

@@ -16,7 +16,15 @@
 
   <p style="font-size:18px;">What if, the moment an incident hit, two AI DBAs investigated your database and <strong>argued about the fix</strong> — one racing to restore service, one guarding against risk — and handed you a runbook? Here's how I built exactly that on Oracle&nbsp;26ai.</p>
 
-  <h2 style="font-family:'SF Mono',Consolas,Monaco,monospace;color:#0f766e;font-size:1.35em;margin-top:34px;">▍ the idea</h2>
+    <div style="background:#f6f8fa;border:1px solid #e6eaef;border-left:4px solid #0f766e;border-radius:10px;padding:14px 18px;margin:20px 0;font-size:15px;color:#243240;">
+    <div style="font-weight:800;margin-bottom:8px;color:#0f172a;">📋 At a glance</div>
+    <div style="margin:3px 0;"><strong>Tech stack:</strong> Oracle 26ai · SQLcl MCP Server · OpenAI · Streamlit</div>
+    <div style="margin:3px 0;"><strong>Database:</strong> Oracle AI Database 26ai — 23.26.2.2.0 (Autonomous Database)</div>
+    <div style="margin:3px 0;"><strong>Best for:</strong> Read-only, AI-assisted DBA incident triage that produces a runbook — no write access to production needed.</div>
+    <div style="margin:3px 0;"><strong>Level:</strong> Intermediate</div>
+  </div>
+
+<h2 style="font-family:'SF Mono',Consolas,Monaco,monospace;color:#0f766e;font-size:1.35em;margin-top:34px;">▍ the idea</h2>
   <p>When an incident lands, I don't ask one AI "what's wrong?" — I let <strong>three AI DBAs work it together</strong>: a <strong style="color:#b91c1c;">Mitigator</strong> who wants service back <em>now</em>, a <strong style="color:#1d4ed8;">Guardian</strong> who challenges the risk and hunts the root cause, and an <strong style="color:#0f766e;">Incident Commander</strong> who weighs both and writes the runbook. All three read the same live diagnostics from the database.</p>
   <p>Why make them argue? Because under pressure, the fast fix and the safe fix are often different things. "Just kill the blocking session" can roll back a half-finished batch job. Forcing both viewpoints into the open gets you a decision you can defend at the post-mortem.</p>
 
